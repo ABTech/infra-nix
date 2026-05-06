@@ -3,12 +3,14 @@ let
   cfg = config.abtech.profiles.core;
 in
   {
+    imports = [
+      ./nix.nix
+      ./packages.nix
+    ];
+    
     options.abtech.profiles.core = {
-      enable = lib.mkOption {
-        description = "Whether to enable abtech.profiles.core";
-        default = true;
-        type = lib.types.bool;
-      };
+      enable = lib.mkEnableOption "abtech.profiles.core"
+                // { default = true; };
     };
 
     config = lib.mkIf cfg.enable {
@@ -78,28 +80,6 @@ in
           enable = true;
           dockerCompat = true;
           defaultNetwork.settings.dns_enabled = true; # Required for containers under podman-compose to be able to talk to each other.
-        };
-      };
-
-      nix = {
-        channel.enable = false;
-        settings.experimental-features = ["nix-command" "flakes"];
-        optimise.automatic = true;
-        gc = {
-          automatic = true;
-          options = "--delete-older-than 7d";
-        };
-      };
-
-      system.autoUpgrade = {
-        enable = true;
-        flake = "github:abtech/infra-nix";
-        dates = "03:00";
-        randomizedDelaySec = "45min";
-        allowReboot = true;
-        rebootWindow = {
-          lower = "02:00";
-          upper = "05:00";
         };
       };
     };

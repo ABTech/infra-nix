@@ -1,5 +1,4 @@
-{ domain, passwordFile, pkgs', ... }:
-{ config, pkgs, lib, ... }:
+{ config, pkgs, lib, passwordFile, domain, pkgs', ... }:
 let
   # These are hardcoded as of 26.05:
   # https://github.com/NixOS/nixpkgs/blob/fd9eef1943dc81f2877bd3e4e2ac132edd0027cc/nixos/modules/services/web-apps/mediawiki.nix#L40-L41
@@ -27,21 +26,7 @@ in {
         sha256 = "sha256-R9EMxR8d2W5YX9SnndvBgkw+02cBxp/inBo3RQcpe4s=";
         stripRoot = false;
       };
-      AuthRemoteUser =
-        let
-          src = pkgs.fetchzip {
-            url = "https://github.com/oetterer/AuthRemoteUser/archive/refs/tags/1.0.0.tar.gz";
-            sha256 = "sha256-D6O+DnuCYwqWHdlq3VgBazjbnIPRII0BhPfNWsyBHtE=";
-          };
-        in
-        pkgs.runCommand "PluggableAuth-patched" { } ''
-          cp -r ${src} $out
-          chmod -R u+w $out
-          substituteInPlace $out/src/PluggableAuth.php \
-            --replace-fail \
-              'use Title;' \
-              'use MediaWiki\Title\Title;'
-        '';
+      AuthRemoteUser = pkgs.abtech.mediawiki-AuthRemoteUser;
     };
     httpd.virtualHost = {
       hostName = "${domain}";
@@ -51,13 +36,13 @@ in {
         port = 80;
       }];
       extraConfig = ''
-<Location "/">
-AuthType Basic
-AuthName "Kerberos Login"
-AuthBasicProvider PAM
-AuthPAMService httpd-wiki
-Require valid-user
-</Location>
+        <Location "/">
+          AuthType Basic
+          AuthName "Kerberos Login"
+          AuthBasicProvider PAM
+          AuthPAMService httpd-wiki
+          Require valid-user
+        </Location>
       '';
     };
     extraConfig = ''
@@ -104,10 +89,12 @@ Require valid-user
       '';
     };
 
+  # Authentication via Apache -> PAM -> krb5
+
   services.httpd.extraModules =
     [{
       name = "authnz_pam";
-      path = "${pkgs'.abtech.mod_authnz_pam}/modules/mod_authnz_pam.so";
+      path = "${pkgs.abtech.mod_authnz_pam}/modules/mod_authnz_pam.so";
     }];
 
   environment.etc."pam.d/httpd-wiki".text = ''
@@ -115,10 +102,7 @@ Require valid-user
     account required ${pkgs.pam_krb5}/lib/security/pam_krb5.so
   '';
 
-  security.krb5 = {
-    enable = true;
-    # /etc/krb5.conf is mounted in
-  };
+  security.krb5 = { enable = true; };
   security.pam.krb5.enable = true;
   
   networking.firewall.allowedTCPPorts = [ 80 ];

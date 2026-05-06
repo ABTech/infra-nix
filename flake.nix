@@ -4,24 +4,27 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     
-    # Deployment dependencies
+    # Deployment tooling
     deploy-rs = {
       url = "github:serokell/deploy-rs";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # Imaging new machines
     nixos-anywhere = {
       url = "github:nix-community/nixos-anywhere";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.nixos-stable.follows = "nixpkgs";
       inputs.disko.follows = "disko";
     };
+
     # Secrets
     agenix.url = "github:ryantm/agenix";
     agenix.inputs.nixpkgs.follows = "nixpkgs";
     agenix-rekey.url = "github:oddlama/agenix-rekey";
     agenix-rekey.inputs.nixpkgs.follows = "nixpkgs";
 
-    # Partitioning
+    # Disk partitioning and formatting
     disko.url = "github:nix-community/disko";
     disko.inputs.nixpkgs.follows = "nixpkgs";
   };
@@ -29,11 +32,11 @@
   outputs = {
     self,
     nixpkgs,
+    deploy-rs,
     nixos-anywhere,
     agenix,
     agenix-rekey,
     disko,
-    deploy-rs,
     ...
   }: let
       defaults = {
@@ -43,7 +46,6 @@
           agenix-rekey.nixosModules.default
           disko.nixosModules.disko
           ./admins.nix
-          ./secrets.nix
           ./profiles/core
           ./profiles/campuscloud.nix
           ./services/fetch.nix
@@ -68,11 +70,6 @@
   in {
     nixosConfigurations."www-d01" = mkSystem ./hosts/www-d01;
 
-    deploy = {
-      sshUser = "tshea";
-      remoteBuild = true;
-    };
-
     deploy.nodes.www-d01 = mkDeploy "www-d01";
 
     # Preflight checks for connectivity
@@ -83,6 +80,7 @@
       abtech = {
         mod_auth_gssapi = final.callPackage ./pkgs/mod_auth_gssapi.nix {};
         mod_authnz_pam = final.callPackage ./pkgs/mod_authnz_pam.nix {};
+        mediawiki-AuthRemoteUser = final.callPackage ./pkgs/mediawiki-authremoteuser.nix {};
       };
     };
     

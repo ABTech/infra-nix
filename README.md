@@ -9,10 +9,9 @@ Demo: nix-demo.abtech.org
 - `profiles/` - configuration common to machines
 - `secrets/` - secrets keyed to specific machines
 - `services/` - configuration for a specific application
-- `admins.nix` - administrator list
+- `admins.nix` - administrator list and packages
 - `flake.nix` - top-level object with machine, devshell, deployment definitions
 - `flake.lock` - dependency lockfile
-- `secrets.nix` - secrets administrator list
 
 ## Deployment
 
@@ -27,6 +26,7 @@ Then, deploy to all hosts.
 ```
 deploy . \
   --skip-checks \     # Skip static reachability checks. Needed on MacOS/arm64.
+  --remote-build \    # Build closure on remote machine. Needed on MacOS/arm64.
   --interactive-sudo  # Authenticate remote sudo with (krb5) password
 ```
 

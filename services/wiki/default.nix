@@ -1,18 +1,6 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, ... }:
 let
   cfg = config.abtech.services.wiki;
-  
-  # These are hardcoded as of 26.05:
-  # https://github.com/NixOS/nixpkgs/blob/fd9eef1943dc81f2877bd3e4e2ac132edd0027cc/nixos/modules/services/web-apps/mediawiki.nix#L40-L41
-  mediawiki_dir = "/var/lib/mediawiki";
-  # https://github.com/NixOS/nixpkgs/blob/fd9eef1943dc81f2877bd3e4e2ac132edd0027cc/nixos/modules/services/web-apps/mediawiki.nix#L31
-  mediawiki_user = "mediawiki";
-  # https://github.com/NixOS/nixpkgs/blob/fd9eef1943dc81f2877bd3e4e2ac132edd0027cc/nixos/modules/services/web-apps/mediawiki.nix#L32-L38
-  mediawiki_group = config.services.httpd.group;
-
-  db_dir = config.services.mysql.dataDir;
-  db_user = config.services.mysql.user;
-  db_group = config.services.mysql.group;
 in
   {
     options.abtech.services.wiki = {
@@ -75,19 +63,26 @@ in
         hostAddress = "192.168.100.2";
         localAddress = "192.168.100.11";
 
-        config = import ./container.nix {
-          config' = config;
-          pkgs' = pkgs;
-          domain = cfg.domain;
-          passwordFile = "/run/secrets/wikiInitialPassword";
+        config = {
+          _module.args = {
+            domain = cfg.domain;
+            passwordFile = "/run/secrets/wikiInitialPassword";
+          };
+          nixpkgs.overlays = config.nixpkgs.overlays;
+          imports = [
+            ./container.nix
+          ];
         };
       };
 
-      # Default password: config.age.secrets.secret1.path
+      # Secrets: initial password
+
       age.secrets.wikiInitialPassword = {
         rekeyFile = ./initialPassword.age;
         generator.script = "passphrase";
       };
+
+      # Show on index page, if enabled
 
       abtech.services.index.links = [{
         name = "Wiki with krb5 auth";
