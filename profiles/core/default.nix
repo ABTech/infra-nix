@@ -1,3 +1,9 @@
+# Configuration common to all hosts.
+#
+# Notably:
+# - misc machine configs (timezone, sshd, krb5)
+# - nix daemon config, e.g. GC (./nix.nix)
+# - shared packages, esp. cowsay (./packages.nix)
 { config, lib, pkgs, ...}:
 let
   cfg = config.abtech.profiles.core;
@@ -11,6 +17,12 @@ in
     options.abtech.profiles.core = {
       enable = lib.mkEnableOption "abtech.profiles.core"
                 // { default = true; };
+
+      environment = lib.mkOption {
+        description = "Machine environment";
+        type = lib.types.enum ["production" "development"];
+        default = "production";
+      };
     };
 
     config = lib.mkIf cfg.enable {
@@ -69,6 +81,14 @@ in
 
       # abtech logo on SSH login!
       users.motd = builtins.fromJSON (builtins.readFile ./motd.json);
+
+      # Augment PS1 with the current environment (dev/prod)
+      programs.bash.promptInit =
+        lib.mkIf (cfg.environment == "production") ''
+          PS1_PROD="\[\033[41m\]\[\033[37m\] PROD \[\033[0m\]"
+          PS1_HOST="\[\033[1;32m\][\[\e]0;\u@\h: \w\a\]\u@\h:\w]\[\033[0m\]"
+          PS1="$PS1_PROD $PS1_HOST > "
+        '';
 
       # Podman support on all machines
       boot.enableContainers = true;

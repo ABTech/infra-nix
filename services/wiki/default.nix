@@ -1,3 +1,11 @@
+# MediaWiki, authenticated with krb5.
+#
+# This is a (rather nasty) demo of a native NixOS
+# container. MediaWiki, httpd, PAM, etc. are running
+# within the container.
+#
+# This file details everything in the host environment,
+# and ./container.nix details everything in the container.
 { config, lib, ... }:
 let
   cfg = config.abtech.services.wiki;
@@ -64,11 +72,14 @@ in
         localAddress = "192.168.100.11";
 
         config = {
+          # Pass arguments into the container...
           _module.args = {
             domain = cfg.domain;
             passwordFile = "/run/secrets/wikiInitialPassword";
           };
+          # Expose pkgs.abtech.(...) to the container
           nixpkgs.overlays = config.nixpkgs.overlays;
+          # Source the container config
           imports = [
             ./container.nix
           ];

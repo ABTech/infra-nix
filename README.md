@@ -2,6 +2,11 @@
 
 Demo: nix-demo.abtech.org
 
+To evaluate host configurations and checks, deploy to
+machines, and create VMs, you need to install Nix.
+A single-user install is sufficient.
+https://wiki.nixos.org/wiki/Nix_Installation_Guide
+
 ## Structure
 
 - `hosts/` - minimal configuration specific to each host

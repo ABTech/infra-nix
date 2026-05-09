@@ -1,4 +1,15 @@
-{ config, pkgs, lib, passwordFile, domain, pkgs', ... }:
+# Container configuration.
+#
+# This is somewhat of a complexity mess due to
+# the amount of unusual configuration must be injected
+# into MediaWiki and friends for krb5 auth (via PAM,
+# so I don't need to get upstream support).
+#
+# I've chosen not to abstract this into another module
+# because ... that's kind of all that's happening here.
+# If we were doing more (other extensions, themes, configs)
+# then this would benefit from extracting separate concerns.
+{ config, pkgs, lib, passwordFile, domain, ... }:
 let
   # These are hardcoded as of 26.05:
   # https://github.com/NixOS/nixpkgs/blob/fd9eef1943dc81f2877bd3e4e2ac132edd0027cc/nixos/modules/services/web-apps/mediawiki.nix#L40-L41
@@ -102,10 +113,11 @@ in {
     account required ${pkgs.pam_krb5}/lib/security/pam_krb5.so
   '';
 
-  security.krb5 = { enable = true; };
+  security.krb5.enable = true;
   security.pam.krb5.enable = true;
   
   networking.firewall.allowedTCPPorts = [ 80 ];
 
+  # DO NOT CHANGE
   system.stateVersion = "25.11";
 }

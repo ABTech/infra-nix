@@ -1,3 +1,11 @@
+# Demo webpage listing machine services.
+#
+# Other services on this machine should configure:
+#
+#   abtech.services.index.links = [{
+#     name = "What this app does";
+#     url = "abc.xyz";
+#   }];
 { config, lib, pkgs, ... }:
 let
   cfg = config.abtech.services.index;

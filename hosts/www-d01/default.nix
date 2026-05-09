@@ -1,6 +1,4 @@
 {
-  config,
-  pkgs,
   ...
 }: {
   imports = [
@@ -8,7 +6,13 @@
   ];
 
   abtech.profiles.campuscloud.enable = true;
+
+  # hostname is prescribed; should match path
   networking.hostName = "www-d01";
+  # pubkey is taken from the machine after setup.
+  # e.g. via `ssh-keyscan`.
+  # After setting a pubkey, rekey secrets to the device.
+  age.rekey.hostPubkey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGTYit+oKuGnp+7+QWhWntmU/v4ZGsjHsuS6TURh3udm www-d01.abtech.org";
 
   abtech.services.index = {
     enable = true;
@@ -26,13 +30,6 @@
     domain = "wiki.nix-demo.abtech.org";
   };
 
-  age.rekey.hostPubkey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGTYit+oKuGnp+7+QWhWntmU/v4ZGsjHsuS6TURh3udm www-d01.abtech.org";
-
-  programs.bash.promptInit = ''
-    PS1_PROD="\[\033[41m\]\[\033[37m\] PROD \[\033[0m\]"
-    PS1_HOST="\[\033[1;32m\][\[\e]0;\u@\h: \w\a\]\u@\h:\w]\[\033[0m\]"
-    PS1="$PS1_PROD $PS1_HOST > "
-  '';
-
+  # DO NOT CHANGE
   system.stateVersion = "25.11";
 }

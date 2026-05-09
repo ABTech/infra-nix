@@ -1,4 +1,5 @@
-{ config, lib, pkgs, ...}:
+# Common configuration for CMU Campus Cloud VMs
+{ config, lib, ...}:
 let
   cfg = config.abtech.profiles.campuscloud;
 in
@@ -20,9 +21,8 @@ in
       # (the default) this is the recommended approach. When using systemd-networkd it's
       # still possible to use this option, but it's recommended to use it in conjunction
       # with explicit per-interface declarations with `networking.interfaces.<interface>.useDHCP`.
-      networking.useDHCP = lib.mkDefault true;
-      # networking.interfaces.ens192.useDHCP = lib.mkDefault true;
+      networking.useDHCP = true;
 
-      nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
+      nixpkgs.hostPlatform = "x86_64-linux";
     };
   }
